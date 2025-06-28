@@ -9,9 +9,9 @@ reddit = praw.Reddit(
 )
 
 def get_reddit_mentions(coin, limit=50):
-    subreddit = reddit.subreddit("CryptoCurrency")
     posts = []
-    for post in subreddit.new(limit=limit):
-        if coin.lower() in post.title.lower():
-            posts.append(post.title)
+    for submission in reddit.subreddit("all").search(coin, sort="new", limit=limit):
+        if coin.lower() in submission.title.lower():
+            posts.append(submission.title)
+    print(posts)    
     return posts

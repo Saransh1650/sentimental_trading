@@ -1,27 +1,30 @@
 # utils/spike_detector.py
+from collections import deque
 import csv
 from collections import defaultdict
 
 def read_last_two_snapshots(filepath='data/logs.csv'):
-    snapshots = defaultdict(list)
+    # For each coin, keep a deque of its last two records
+    coin_history = defaultdict(lambda: deque(maxlen=2))
 
     with open(filepath, 'r', encoding='utf-8') as f:
-        rows = list(csv.DictReader(f))
-        if len(rows) < 2:
-            return None, None  # Not enough data
-
-        # group by timestamp
-        for row in rows[-100:]:  # limit to last 100 entries
-            ts = row['timestamp']
-            snapshots[ts].append({
-                'coin': row['coin'],
+        for row in csv.DictReader(f):
+            coin = row['coin']
+            coin_history[coin].append({
+                'coin': coin,
                 'mentions': int(row['mentions']),
                 'sentiment': float(row['sentiment']),
                 'score': float(row['trend_score'])
             })
 
-    timestamps = sorted(snapshots.keys())
-    return snapshots[timestamps[-2]], snapshots[timestamps[-1]]
+    prev, curr = [], []
+    for coin, records in coin_history.items():
+        if len(records) == 2:
+            prev.append(records[0])
+            curr.append(records[1])
+    if not prev or not curr:
+        return None, None
+    return prev, curr
 
 def detect_spikes(prev, curr, sentiment_thresh=0.2, mention_thresh=50):
     spikes = []
