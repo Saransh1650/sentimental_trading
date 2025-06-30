@@ -1,4 +1,3 @@
-# modules/reddit_scraper.py
 import praw
 import os
 
@@ -9,9 +8,12 @@ reddit = praw.Reddit(
 )
 
 def get_reddit_mentions(coin, limit=50):
+    subreddits = ["CryptoCurrency", "CryptoMarkets", "Bitcoin", "ethtrader", "CryptoMoonShots"]
     posts = []
-    for submission in reddit.subreddit("all").search(coin, sort="new", limit=limit):
-        if coin.lower() in submission.title.lower():
-            posts.append(submission.title)
-    print(posts)    
+    for sub in subreddits:
+        for submission in reddit.subreddit(sub).search(coin, sort="new", limit=limit):
+            if coin.lower() in submission.title.lower():
+                posts.append(submission.title)
+    print(posts)
     return posts
+

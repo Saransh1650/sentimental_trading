@@ -1,5 +1,6 @@
 # All Python dependencies
 snscrape
 praw
-vaderSentiment
+transformers
 pandas
+torch
