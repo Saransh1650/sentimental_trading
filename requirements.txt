@@ -4,3 +4,4 @@ praw
 transformers
 pandas
 torch
+matplotlib
