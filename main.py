@@ -27,10 +27,9 @@ if prev and curr:
             print(f"- {s['coin']}: Sentiment Δ {s['sentiment_change']:.2f}, Mentions Δ {s['mention_change']}, Score: {s['score']}")
     else:
         print("\nNo significant spikes detected.")
-        
-log_spike_and_trend(spikes, results)
+    log_spike_and_trend(spikes, results)
 
-# Optional: show top trending coins
+# Show top trending coins
 top = sorted(results, key=lambda x: x["score"], reverse=True)[:3]
 print("\n🚨 Trending Coins:")
 for c in top:

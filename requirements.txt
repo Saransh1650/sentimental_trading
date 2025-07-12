@@ -5,3 +5,5 @@ transformers
 pandas
 torch
 matplotlib
+newsdataapi
+python-dotenv

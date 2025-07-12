@@ -1,9 +1,12 @@
 import praw
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 reddit = praw.Reddit(
-    client_id=os.getenv("REDDIT_CLIENT_ID", "LUDn15dl17ur4pg7SOlDlg"),
-    client_secret=os.getenv("REDDIT_CLIENT_SECRET", "6vtoomm5cVVSXEyE1hQ0BFowop9faA"),
+    client_id=os.getenv("REDDIT_CLIENT_ID"),
+    client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
     user_agent="crypto-trend-detector"
 )
 
