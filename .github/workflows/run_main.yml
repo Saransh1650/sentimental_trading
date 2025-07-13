@@ -1,0 +1,37 @@
+name: Run Crypto Logger Every 30 Minutes
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Decode Google Credentials
+      run: |
+        echo "${{ secrets.CREDENTIALS }}" | base64 --decode > credentials.json
+
+    - name: Create .env file
+      run: |
+        echo "REDDIT_CLIENT_ID=${{ secrets.REDDIT_CLIENT_ID }}" >> .env
+        echo "REDDIT_CLIENT_SECRET=${{ secrets.REDDIT_CLIENT_SECRET }}" >> .env
+        echo "COIN_DESK_API_KEY=${{ secrets.COIN_DESK_API_KEY }}" >> .env
+
+    - name: Run script
+      run: |
+        python main.py
