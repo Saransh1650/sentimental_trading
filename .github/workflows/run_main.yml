@@ -26,7 +26,7 @@ jobs:
       run: |
         echo "${{ secrets.CREDENTIALS }}" | base64 --decode > credentials.json
 
-    - name: Debug credentials
+    - name: Check credentials
       run: |
         head -n 5 credentials.json
 
