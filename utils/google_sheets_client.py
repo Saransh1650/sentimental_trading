@@ -49,8 +49,8 @@ def log_spike_and_trend(spikes, trends):
 
     for trend in trends:
         is_spike = 'NO'
-        sentiment_change = ''
-        mention_change = ''
+        sentiment_change = 0
+        mention_change = 0
 
         if trend['coin'] in spiked_coins_map:
             spike_info = spiked_coins_map[trend['coin']]
@@ -64,7 +64,7 @@ def log_spike_and_trend(spikes, trends):
             is_spike,
             sentiment_change,
             mention_change,
-            trend['score'],
+            trend.get('score', 0),
             trend['mentions'],
             trend['sentiment']
         ])
