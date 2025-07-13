@@ -26,6 +26,10 @@ jobs:
       run: |
         echo "${{ secrets.CREDENTIALS }}" | base64 --decode > credentials.json
 
+    - name: Debug credentials
+      run: |
+        head -n 5 credentials.json
+
     - name: Create .env file
       run: |
         echo "REDDIT_CLIENT_ID=${{ secrets.REDDIT_CLIENT_ID }}" >> .env
