@@ -5,9 +5,7 @@ transformers
 pandas
 torch
 matplotlib
-newsdataapi
 python-dotenv
-schedule
 gspread
 google-auth-oauthlib
 oauth2client
