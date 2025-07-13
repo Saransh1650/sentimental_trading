@@ -1,12 +1,10 @@
 import json
-import time
-import schedule
 from modules.trending_detector import analyze_coin
 from utils.google_sheets_client import log_coin_data, read_last_two_snapshots, log_spike_and_trend
 from utils.detect_spike import detect_spikes
 from datetime import datetime
 
-def job():
+def run_job():
     with open("config/coins.json") as f:
         coins = json.load(f)
 
@@ -41,12 +39,5 @@ def job():
     for c in top:
         print(f"- {c['coin']} → Score: {c['score']}")
 
-# Schedule the job to run every 15 minutes
-schedule.every(15).minutes.do(job)
-
-# Run the job immediately at startup
-job()
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if __name__ == "__main__":
+    run_job()
