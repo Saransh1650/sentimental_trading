@@ -44,70 +44,80 @@ def log_coin_data(coin_data):
 
 def log_spike_and_trend(spikes, trends):
     """Logs detected spikes and current trend info to the 'Spike Trends' worksheet."""
-    # If the sheet is empty, add the header row
-    if not spike_trends_sheet.get_all_values():
-        header = ['timestamp', 'coin', 'spike', 'sentiment_change', 'mention_change', 'score', 'mentions', 'sentiment']
-        spike_trends_sheet.append_row(header, value_input_option='USER_ENTERED')
-
     rows = []
-    for spike in spikes:
-        trend = next((t for t in trends if t['coin'] == spike['coin']), {})
-        rows.append([
-            spike['timestamp'],
-            spike['coin'],
-            'YES',
-            round(spike.get('sentiment_change', 0), 3),
-            spike.get('mention_change', 0),
-            trend.get('score', ''),
-            trend.get('mentions', ''),
-            trend.get('sentiment', '')
-        ])
+    spiked_coins_map = {s['coin']: s for s in spikes}
 
-    spiked_coins = {s['coin'] for s in spikes}
     for trend in trends:
-        if trend['coin'] not in spiked_coins:
-            rows.append([
-                trend['timestamp'],
-                trend['coin'],
-                'NO',
-                '',
-                '',
-                trend['score'],
-                trend['mentions'],
-                trend['sentiment']
-            ])
-            
-    # Append all rows and use USER_ENTERED to ensure correct data parsing
-    spike_trends_sheet.append_rows(rows, value_input_option='USER_ENTERED')
+        is_spike = 'NO'
+        sentiment_change = ''
+        mention_change = ''
+
+        if trend['coin'] in spiked_coins_map:
+            spike_info = spiked_coins_map[trend['coin']]
+            is_spike = 'YES'
+            sentiment_change = round(spike_info.get('sentiment_change', 0), 3)
+            mention_change = spike_info.get('mention_change', 0)
+
+        rows.append([
+            trend['timestamp'],
+            trend['coin'],
+            is_spike,
+            sentiment_change,
+            mention_change,
+            trend['score'],
+            trend['mentions'],
+            trend['sentiment']
+        ])
+        
+    if not rows:
+        return
+
+    all_values = spike_trends_sheet.get_all_values()
+    
+    if not all_values or not all_values[0]:
+        # Sheet is empty or header is missing, write header and data
+        header = ['timestamp', 'coin', 'spike', 'sentiment_change', 'mention_change', 'score', 'mentions', 'sentiment']
+        rows.insert(0, header)
+        spike_trends_sheet.update('A1', rows, value_input_option='USER_ENTERED')
+    else:
+        # Sheet has data, find next empty row and append
+        next_row_index = len(all_values) + 1
+        spike_trends_sheet.update(f'A{next_row_index}', rows, value_input_option='USER_ENTERED')
 
 def read_last_two_snapshots():
     """
     Reads all data from the 'Coin Data' worksheet and returns the last two snapshots for each coin.
     Returns None, None if no coin has at least two data points for comparison.
     """
-    records = coin_data_sheet.get_all_records()
+    all_values = coin_data_sheet.get_all_values()
+    if not all_values or len(all_values) < 2:
+        return None, None
 
-    # Group all records by coin, keeping only the last two for each
-    coin_history = defaultdict(lambda: deque(maxlen=2))
+    header = ['timestamp', 'coin', 'mentions', 'sentiment', 'score']
+    data_rows = all_values[1:]
+    
+    records = []
+    for row in data_rows:
+        while len(row) < len(header):
+            row.append('')
+        records.append(dict(zip(header, row)))
+
+    coin_snapshots = defaultdict(list)
     for record in records:
         try:
-            # Ensure data from the sheet is in the correct format
             record['mentions'] = int(record['mentions'])
             record['sentiment'] = float(record['sentiment'])
             record['score'] = float(record['score'])
-            coin_history[record['coin']].append(record)
+            coin_snapshots[record['coin']].append(record)
         except (ValueError, KeyError):
-            # Skip rows with malformed data
             continue
 
     prev, curr = [], []
-    for coin, history in coin_history.items():
-        # Only add to the list if a coin has two snapshots to compare
-        if len(history) == 2:
-            prev.append(history[0])
-            curr.append(history[1])
+    for coin, snapshots in coin_snapshots.items():
+        if len(snapshots) >= 2:
+            prev.append(snapshots[-2])
+            curr.append(snapshots[-1])
 
-    # If no coins had enough data for a comparison, return None
     if not prev:
         return None, None
 

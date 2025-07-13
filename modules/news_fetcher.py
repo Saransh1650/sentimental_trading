@@ -24,7 +24,7 @@ def get_crypto_news(coin):
         articles = json_response.get('Data', [])
         bodies = [article['BODY'] for article in articles if 'BODY' in article and article['BODY']]
         
-        print(bodies)
+        # print(bodies)
         return bodies
 
     except requests.exceptions.RequestException as e:

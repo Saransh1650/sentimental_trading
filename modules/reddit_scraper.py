@@ -17,6 +17,6 @@ def get_reddit_mentions(coin, limit=50):
         for submission in reddit.subreddit(sub).search(coin, sort="new", limit=limit):
             if coin.lower() in submission.title.lower():
                 posts.append(submission.title)
-    print(posts)
+    # print(posts)
     return posts
 
