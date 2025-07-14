@@ -1,4 +1,4 @@
-name: Run Crypto Logger Every 30 Minutes
+name: Run Crypto Logger 
 
 on:
   schedule:
