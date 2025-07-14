@@ -23,11 +23,6 @@ try:
 except gspread.exceptions.WorksheetNotFound:
     coin_data_sheet = spreadsheet.add_worksheet(title="Coin Data", rows="1000", cols="20")
 
-try:
-    spike_trends_sheet = spreadsheet.worksheet("Spike Trends")
-except gspread.exceptions.WorksheetNotFound:
-    spike_trends_sheet = spreadsheet.add_worksheet(title="Spike Trends", rows="1000", cols="20")
-
 def log_coin_data(coin_data):
     """Logs a list of coin data to the 'Coin Data' worksheet."""
     # If the sheet is empty, add the header row
@@ -43,11 +38,16 @@ def log_coin_data(coin_data):
     coin_data_sheet.append_rows(rows, value_input_option='USER_ENTERED')
 
 def log_spike_and_trend(spikes, trends):
-    """Logs detected spikes and current trend info to the 'Spike Trends' worksheet."""
-    rows = []
+    """Logs detected spikes and current trend info to a separate worksheet for each coin."""
     spiked_coins_map = {s['coin']: s for s in spikes}
 
     for trend in trends:
+        coin_name = trend['coin']
+        try:
+            worksheet = spreadsheet.worksheet(coin_name)
+        except gspread.exceptions.WorksheetNotFound:
+            worksheet = spreadsheet.add_worksheet(title=coin_name, rows="1000", cols="20")
+
         is_spike = 'NO'
         sentiment_change = 0
         mention_change = 0
@@ -58,31 +58,22 @@ def log_spike_and_trend(spikes, trends):
             sentiment_change = round(spike_info.get('sentiment_change', 0), 3)
             mention_change = spike_info.get('mention_change', 0)
 
-        rows.append([
+        row_to_log = [
             trend['timestamp'],
-            trend['coin'],
             is_spike,
             sentiment_change,
             mention_change,
             trend.get('score', 0),
             trend['mentions'],
             trend['sentiment']
-        ])
-        
-    if not rows:
-        return
+        ]
 
-    all_values = spike_trends_sheet.get_all_values()
-    
-    if not all_values or not all_values[0]:
-        # Sheet is empty or header is missing, write header and data
-        header = ['timestamp', 'coin', 'spike', 'sentiment_change', 'mention_change', 'score', 'mentions', 'sentiment']
-        rows.insert(0, header)
-        spike_trends_sheet.update('A1', rows, value_input_option='USER_ENTERED')
-    else:
-        # Sheet has data, find next empty row and append
-        next_row_index = len(all_values) + 1
-        spike_trends_sheet.update(f'A{next_row_index}', rows, value_input_option='USER_ENTERED')
+        all_values = worksheet.get_all_values()
+        if not all_values or not all_values[0]:
+            header = ['timestamp', 'spike', 'sentiment_change', 'mention_change', 'score', 'mentions', 'sentiment']
+            worksheet.append_row(header, value_input_option='USER_ENTERED')
+        
+        worksheet.append_row(row_to_log, value_input_option='USER_ENTERED')
 
 def read_last_two_snapshots():
     """
